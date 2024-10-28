@@ -4,12 +4,20 @@ import Error from "./pages/Error";
 import LogIn from "./pages/Auth/LogIn";
 import Signup from "./pages/Auth/Signup";
 import AuthLayout from "./pages/Auth/AuthLayout";
+import AuthenticationRote from "./PrivateRoute/privateRoute";
+
+import Dashbord from "./pages/Admin/Dashbord";
+import Admin from "./pages/Admin/Admin";
 
 const route = createBrowserRouter([
   {
     path: "/",
     element: <Home />,
     children: [
+      {
+        path: "",
+        element: <Home />,
+      },
       {
         path: "home",
         element: <Home />,
@@ -30,8 +38,22 @@ const route = createBrowserRouter([
       },
 
       {
-        path: "signup",
+        path: "register",
         element: <Signup />,
+      },
+    ],
+  },
+  {
+    path: "/admin",
+    element: <Admin />,
+    children: [
+      {
+        path: "",
+        element: <Dashbord />,
+      },
+      {
+        path: "dashboard",
+        element: <Dashbord />,
       },
     ],
   },

@@ -8,8 +8,6 @@ const verifyToken = require("../middleware/verifyuser");
 authController.post("/register", async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
-
-    console.log(username, email, password);
     if (!username || !email || !password) {
       return next(errorHandler(400, "plz provide your details"));
     }
@@ -41,7 +39,7 @@ authController.post("/register", async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    return next(errorHandler());
+    return next(errorHandler(300, error.message));
   }
 });
 authController.post("/sign-in", async (req, res, next) => {
@@ -68,20 +66,15 @@ authController.post("/sign-in", async (req, res, next) => {
       const token = jwt.sign(tokendata, process.env.SECRET_KEY, {
         expiresIn: "30d",
       });
+      const user = await User.findOne({ email }).select("-password");
       const tokenoption = {
         expires: new Date(Date.now() + 604800000),
         httpOnly: true,
         securce: true,
       };
-      const userinfromation = {
-        id: finduser._id,
-        username: finduser.username,
-        email: finduser.email,
-        role: finduser.role,
-      };
       res.status(201).cookie("token", token, tokenoption).json({
         message: "successfully login",
-        data: userinfromation,
+        data: user,
         success: true,
         error: false,
       });
@@ -91,19 +84,19 @@ authController.post("/sign-in", async (req, res, next) => {
     return next(errorHandler(400, error.message));
   }
 });
-authController.get("/checkuser", verifyToken, async (req, res, next) => {
+authController.get("/verifyUser", verifyToken, async (req, res, next) => {
   const user = req.user;
   try {
-    const finduser = await User.findById(user.id);
-    const userinfromation = {
-      id: finduser._id,
-      username: finduser.username,
-      email: finduser.email,
-      role: finduser.role,
-    };
+    const finduser = await User.findById(user.id).select("-password");
+    // const userinfromation = {
+    //   id: finduser._id,
+    //   username: finduser.username,
+    //   email: finduser.email,
+    //   role: finduser.role,
+    // };
     res.status(201).json({
       message: "successfully login",
-      data: userinfromation,
+      data: finduser,
       success: true,
       error: false,
     });
