@@ -4,7 +4,6 @@ import Error from "./pages/Error";
 import LogIn from "./pages/Auth/LogIn";
 import Signup from "./pages/Auth/Signup";
 import AuthLayout from "./pages/Auth/AuthLayout";
-import AuthenticationRote from "./PrivateRoute/privateRoute";
 
 import Dashbord from "./pages/Admin/Dashbord";
 import Admin from "./pages/Admin/Admin";
@@ -66,7 +65,7 @@ const route = createBrowserRouter([
 
 function App() {
   return (
-    <div>
+    <div className="w-full h-full bg-gray-100">
       <RouterProvider router={route} />
     </div>
   );

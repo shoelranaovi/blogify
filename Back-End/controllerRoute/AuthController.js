@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const User = require("../model/user.model");
 const jwt = require("jsonwebtoken");
 const verifyToken = require("../middleware/verifyuser");
+const transporter = require("../confiq/nodemailer");
+const sendMagicLink = require("../confiq/sendMagic");
 authController.post("/register", async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
@@ -118,5 +120,88 @@ authController.get("/logout", async (req, res, next) => {
     next(errorHandler());
   }
 });
+authController.post("/userCreateWithmagiclink", async (req, res) => {
+  const { email } = req.body;
+  console.log(email);
+
+  // Check if user already exists
+  let user = await User.findOne({ email });
+  if (user) {
+    return res.status(400).send("User already exists");
+  }
+
+  // Create a new user
+  user = new User({ email });
+  await user.save();
+
+  // Generate a token
+  const token = jwt.sign({ email }, process.env.SECRET_KEY, {
+    expiresIn: "15m",
+  });
+
+  // Create the magic link
+  const link = `http://localhost:3000/api/auth/verify?token=${token}`;
+
+  // Send the email
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Your Magic Link",
+    text: `Click here to sign in: ${link}`,
+  });
+
+  res.status(200).json({
+    message: "Magic link sent to your email",
+    success: true,
+    error: false,
+  });
+});
+authController.get("/verify", async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).send("No token provided");
+  }
+
+  jwt.verify(token, process.env.SECRET_KEY, async (err, decoded) => {
+    if (err) {
+      return res.status(400).send("Invalid token");
+    }
+
+    const { email } = decoded;
+
+    // Mark the user as verified
+    const user = await User.findOne({ email });
+    if (user) {
+      user.verify = true;
+      await user.save();
+      const tokenoption = {
+        expires: new Date(Date.now() + 604800000),
+        httpOnly: true,
+        securce: true,
+      };
+
+      res.status(201).cookie("token", token, tokenoption);
+      return res.send('<a href="http://localhost:5173/">Login here</a>');
+    } else {
+      return res.status(400).send("User not found");
+    }
+  });
+});
+authController.post("/magiclogin", async (req, res) => {
+  const { email } = req.body;
+
+  // Check if user exists
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).send("User does not exist. Please sign up first.");
+  }
+
+  // Generate and send magic link
+  sendMagicLink(user);
+  res.send("Magic link sent to your email!");
+});
+
+// Function to generate and send magic link
 
 module.exports = authController;

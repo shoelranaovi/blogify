@@ -4,8 +4,7 @@ const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: true,
-      unique: true,
+      default: "user",
     },
     email: {
       type: String,
@@ -14,7 +13,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
     },
     role: {
       type: String,
@@ -25,6 +23,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://www.iconfinder.com/icons/403022/business_man_male_user_avatar_profile_person_man_icon",
+    },
+    verify: {
+      type: Boolean,
+      default: false,
     },
   },
   {
