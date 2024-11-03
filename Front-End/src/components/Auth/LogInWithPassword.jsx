@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { register } from "@/Redux/AuthSlice";
 
 const initialdata = {
   username: "",
@@ -10,10 +13,32 @@ const initialdata = {
 function LogInWithPassword() {
   const [fromdata, setFromdata] = useState(initialdata);
   console.log(fromdata);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  async function handlesubmit(e) {
+    e.preventDefault();
+    alert("clicked");
+    try {
+      dispatch(register(fromdata)).then((data) => {
+        if (data.payload.success) {
+          toast.success(data.payload.message);
+          console.log(data.payload);
+          navigate("/auth/login");
+        } else {
+          toast.error(data.payload.message);
+          console.log(data);
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      toast.error(error.massage);
+    }
+  }
 
   return (
     <div className="mt-10">
-      <from className="flex flex-col gap-3">
+      <from onSubmit={handlesubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-3">
           <label>Username:</label>
           <input
@@ -53,7 +78,10 @@ function LogInWithPassword() {
             }
           />
         </div>
-        <Button className="py-6"> Submit </Button>
+        <Button onClick={handlesubmit} className="py-6">
+          {" "}
+          Sign Up{" "}
+        </Button>
         <div>
           <span> Already a member?</span> <Link>Sign in</Link>
         </div>

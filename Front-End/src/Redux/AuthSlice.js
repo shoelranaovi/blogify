@@ -69,6 +69,74 @@ export const checkUser = createAsyncThunk(
     }
   }
 );
+export const signupwithlink = createAsyncThunk(
+  "/auth/linksignup",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/userCreateWithmagiclink",
+        formData,
+
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      // If there is an error, return the response data or the message via rejectWithValue
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data); // Custom payload in case of error
+      } else {
+        return rejectWithValue(error.message); // Fallback message if no response data
+      }
+    }
+  }
+);
+export const magiclogin = createAsyncThunk(
+  "/auth/magiclogin",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/magiclogin",
+        formData,
+
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      // If there is an error, return the response data or the message via rejectWithValue
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data); // Custom payload in case of error
+      } else {
+        return rejectWithValue(error.message); // Fallback message if no response data
+      }
+    }
+  }
+);
+export const google = createAsyncThunk(
+  "/auth/google",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/googleAuth",
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      // If there is an error, return the response data or the message via rejectWithValue
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data); // Custom payload in case of error
+      } else {
+        return rejectWithValue(error.message); // Fallback message if no response data
+      }
+    }
+  }
+);
 
 export const AuthSlice = createSlice({
   name: "Auth",
@@ -88,16 +156,11 @@ export const AuthSlice = createSlice({
       .addCase(signIn.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(signIn.fulfilled, (state, action) => {
+      .addCase(signIn.fulfilled, (state) => {
         state.isLoading = false;
-        state.isAuthenticate = true;
-        state.user = action.payload.data;
-        console.log(action.payload);
       })
       .addCase(signIn.rejected, (state) => {
         state.isLoading = false;
-        state.isAuthenticate = false;
-        state.user = null;
       })
       .addCase(checkUser.pending, (state) => {
         state.isLoading = true;
@@ -108,10 +171,41 @@ export const AuthSlice = createSlice({
         state.user = action.payload.data;
         console.log(action.payload);
       })
-      .addCase(checkUser.rejected, (state) => {
+      .addCase(checkUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticate = false;
         state.user = null;
+        console.log(action.payload);
+      })
+      .addCase(signupwithlink.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(signupwithlink.fulfilled, (state, action) => {
+        state.isLoading = false;
+        console.log(action.payload);
+      })
+      .addCase(signupwithlink.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(magiclogin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(magiclogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        console.log(action.payload);
+      })
+      .addCase(magiclogin.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(google.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(google.fulfilled, (state, action) => {
+        state.isLoading = false;
+        console.log(action.payload);
+      })
+      .addCase(google.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });

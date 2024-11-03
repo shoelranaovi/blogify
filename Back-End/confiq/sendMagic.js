@@ -12,7 +12,7 @@ const sendMagicLink = async (user) => {
   });
 
   // Create the magic link
-  const link = `http://localhost:3000/api/auth/verify?token=${token}`;
+  const link = `http://localhost:3000/api/auth/verifyforlogin?token=${token}`;
 
   // Send the email
   await transporter.sendMail({

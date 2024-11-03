@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import MagicFrom from "./MagicFrom";
+import MagicFrom from "./signupMagicFrom";
 import LogInWithPassword from "./LogInWithPassword";
 
 function Magicbutton() {

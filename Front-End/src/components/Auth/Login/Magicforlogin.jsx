@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import MagicFrom from "../MagicFrom";
-
 import LogInFrom from "./LogInFrom";
+
+import LoginLink from "./loginlink";
 import { Button } from "@/components/ui/button";
 
 function Magicbuttonlogin() {
@@ -34,7 +34,7 @@ function Magicbuttonlogin() {
         </Button>
       </div>
       <div className="w-full ">
-        {tab === "magic" && <MagicFrom />}
+        {tab === "magic" && <LoginLink />}
         {tab === "password" && <LogInFrom />}
       </div>
     </div>

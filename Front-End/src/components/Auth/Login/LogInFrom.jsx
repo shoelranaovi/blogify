@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { checkUser, signIn } from "@/Redux/AuthSlice";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const initialdata = {
   email: "",
@@ -10,10 +13,33 @@ const initialdata = {
 function LogInFrom() {
   const [fromdata, setFromdata] = useState(initialdata);
   console.log(fromdata);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  async function handlesubmit(e) {
+    e.preventDefault();
+    alert("clicked");
+    try {
+      dispatch(signIn(fromdata)).then((data) => {
+        if (data.payload.success) {
+          toast.success(data.payload.message);
+          console.log(data.payload);
+          navigate("/");
+          dispatch(checkUser());
+        } else {
+          toast.error(data.payload.message);
+          console.log(data);
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      toast.error(error.massage);
+    }
+  }
 
   return (
     <div className="mt-10">
-      <from className="flex flex-col gap-3">
+      <from onSubmit={handlesubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-3">
           <label>Email:</label>
           <input
@@ -40,7 +66,10 @@ function LogInFrom() {
             }
           />
         </div>
-        <Button className="py-6"> Submit </Button>
+        <Button onClick={handlesubmit} className="py-6">
+          {" "}
+          Sign IN{" "}
+        </Button>
         <div>
           <span> Dont have account ?</span> <Link> Sign up</Link>
         </div>

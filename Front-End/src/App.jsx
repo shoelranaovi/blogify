@@ -7,6 +7,9 @@ import AuthLayout from "./pages/Auth/AuthLayout";
 
 import Dashbord from "./pages/Admin/Dashbord";
 import Admin from "./pages/Admin/Admin";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { checkUser } from "./Redux/AuthSlice";
 
 const route = createBrowserRouter([
   {
@@ -64,6 +67,11 @@ const route = createBrowserRouter([
 ]);
 
 function App() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(checkUser());
+    console.log("check");
+  }, []);
   return (
     <div className="w-full h-full bg-gray-100">
       <RouterProvider router={route} />

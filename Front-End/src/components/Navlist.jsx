@@ -1,10 +1,11 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { Button } from "./ui/button";
+import { useSelector } from "react-redux";
 
 const navlist = [
   {
@@ -39,6 +40,9 @@ const initialState = {
 
 function Navlist() {
   const [open, setopen] = useState(initialState);
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [proopen, setproOpen] = useState(false);
 
   const location = useLocation();
 
@@ -116,7 +120,30 @@ function Navlist() {
           <div>
             <CiSearch size={30} />
           </div>
-          <Button>Sign In</Button>
+          {user ? (
+            <div
+              onClick={() => setproOpen(!proopen)}
+              className="w-10 h-10 relative rounded-full  bg-black">
+              <img src={user.profilePicture} alt="" />
+              {proopen && (
+                <div className="w-[200px] p-5 flex justify-center gap-4 items-center flex-col bg-gray-100 absolute top-12   lg:right-3 lg:top-12  ">
+                  <Link
+                    className="w-full rounded-sm py-2 px-1 bg-slate-50 hover:bg-blue-100 transition ease-in-out duration-300 hover:text-blue-400 "
+                    to="/profile">
+                    Profile
+                  </Link>
+                  <Link
+                    className="w-full rounded-sm py-2 px-1 bg-slate-50 hover:bg-blue-100 transition ease-in-out duration-300 hover:text-blue-400 "
+                    to="/profile">
+                    DashBord
+                  </Link>
+                  <span className="w-4 h-4 bg-gray-100 absolute -top-1 left-4 lg:left-44 rotate-45 white"></span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Button onClick={() => navigate("/auth/login")}>Sign In</Button>
+          )}
         </div>
       </div>
     </div>

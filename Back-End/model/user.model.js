@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
     profilePicture: {
       type: String,
       default:
-        "https://www.iconfinder.com/icons/403022/business_man_male_user_avatar_profile_person_man_icon",
+        "https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-512.png",
     },
     verify: {
       type: Boolean,

@@ -35,13 +35,75 @@ authController.post("/register", async (req, res, next) => {
     const saveUser = await newUser.save();
     res.status(200).json({
       message: "user create successfull",
-      data: saveUser,
       success: true,
       error: false,
     });
   } catch (error) {
     console.log(error);
     return next(errorHandler(300, error.message));
+  }
+});
+authController.post("/googleAuth", async (req, res, next) => {
+  const { email, username, profilePicture } = req.body;
+  console.log(req.body);
+
+  try {
+    const finduser = await User.findOne({ email });
+    if (!finduser) {
+      const payload = {
+        username,
+        email,
+        profilePicture,
+      }; //  create user using payload
+
+      const newUser = new User(payload); ///create user user model
+      const saveUser = await newUser.save();
+      const newuser = await User.findOne({ email });
+      const tokendata = {
+        id: newuser._id,
+        email: newuser.email,
+        role: newuser.role,
+      };
+      const token = jwt.sign(tokendata, process.env.SECRET_KEY, {
+        expiresIn: "30d",
+      });
+      const user = await User.findOne({ email }).select("-password");
+      const tokenoption = {
+        expires: new Date(Date.now() + 604800000),
+        httpOnly: true,
+        securce: true,
+      };
+      res.status(201).cookie("token", token, tokenoption).json({
+        message: "successfully login",
+        data: user,
+        success: true,
+        error: false,
+      });
+    } else {
+      const tokendata = {
+        id: finduser._id,
+        email: finduser.email,
+        role: finduser.role,
+      };
+      const token = jwt.sign(tokendata, process.env.SECRET_KEY, {
+        expiresIn: "30d",
+      });
+      const user = await User.findOne({ email }).select("-password");
+      const tokenoption = {
+        expires: new Date(Date.now() + 604800000),
+        httpOnly: true,
+        securce: true,
+      };
+      res.status(201).cookie("token", token, tokenoption).json({
+        message: "successfully login",
+        data: user,
+        success: true,
+        error: false,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return next(errorHandler(400, error.message));
   }
 });
 authController.post("/sign-in", async (req, res, next) => {
@@ -88,6 +150,11 @@ authController.post("/sign-in", async (req, res, next) => {
 });
 authController.get("/verifyUser", verifyToken, async (req, res, next) => {
   const user = req.user;
+
+  if (!user) {
+    return next(errorHandler(400, "plz provide valid token"));
+  }
+
   try {
     const finduser = await User.findById(user.id).select("-password");
     // const userinfromation = {
@@ -104,7 +171,7 @@ authController.get("/verifyUser", verifyToken, async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    next(errorHandler());
+    next(errorHandler(400, "some error"));
   }
 });
 authController.get("/logout", async (req, res, next) => {
@@ -120,14 +187,14 @@ authController.get("/logout", async (req, res, next) => {
     next(errorHandler());
   }
 });
-authController.post("/userCreateWithmagiclink", async (req, res) => {
+authController.post("/userCreateWithmagiclink", async (req, res, next) => {
   const { email } = req.body;
   console.log(email);
 
   // Check if user already exists
   let user = await User.findOne({ email });
   if (user) {
-    return res.status(400).send("User already exists");
+    return next(errorHandler(401, "user already exist"));
   }
 
   // Create a new user
@@ -136,11 +203,11 @@ authController.post("/userCreateWithmagiclink", async (req, res) => {
 
   // Generate a token
   const token = jwt.sign({ email }, process.env.SECRET_KEY, {
-    expiresIn: "15m",
+    expiresIn: "5m",
   });
 
   // Create the magic link
-  const link = `http://localhost:3000/api/auth/verify?token=${token}`;
+  const link = `http://localhost:3000/api/auth/verifyforSignup?token=${token}`;
 
   // Send the email
   await transporter.sendMail({
@@ -156,7 +223,58 @@ authController.post("/userCreateWithmagiclink", async (req, res) => {
     error: false,
   });
 });
-authController.get("/verify", async (req, res) => {
+authController.get("/verifyforSignup", async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).send("No token provided");
+  }
+
+  jwt.verify(token, process.env.SECRET_KEY, async (err, decoded) => {
+    if (err) {
+      return res.status(400).send("Invalid token");
+    }
+
+    const { email } = decoded;
+
+    // Mark the user as verified
+    const user = await User.findOne({ email });
+    if (user) {
+      user.verify = true;
+      await user.save();
+      // const tokenoption = {
+      //   expires: new Date(Date.now() + 604800000),
+      //   httpOnly: true,
+      //   securce: true,
+      // };
+
+      // res.status(201).cookie("token", token, tokenoption);
+      return res.send(
+        '<a href="http://localhost:5173/auth/login">Login here</a>'
+      );
+    } else {
+      return res.status(400).send("User not found");
+    }
+  });
+});
+authController.post("/magiclogin", async (req, res) => {
+  const { email } = req.body;
+
+  // Check if user exists
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).send("User does not exist. Please sign up first.");
+  }
+
+  // Generate and send magic link
+  sendMagicLink(user);
+  res.status(200).json({
+    message: "Magic link sent to your email",
+    success: true,
+    error: false,
+  });
+});
+authController.get("/verifyforlogin", async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
@@ -182,24 +300,11 @@ authController.get("/verify", async (req, res) => {
       };
 
       res.status(201).cookie("token", token, tokenoption);
-      return res.send('<a href="http://localhost:5173/">Login here</a>');
+      return res.send('<a href="http://localhost:5173/">go home</a>');
     } else {
       return res.status(400).send("User not found");
     }
   });
-});
-authController.post("/magiclogin", async (req, res) => {
-  const { email } = req.body;
-
-  // Check if user exists
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(400).send("User does not exist. Please sign up first.");
-  }
-
-  // Generate and send magic link
-  sendMagicLink(user);
-  res.send("Magic link sent to your email!");
 });
 
 // Function to generate and send magic link
